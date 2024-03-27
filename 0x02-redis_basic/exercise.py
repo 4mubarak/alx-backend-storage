@@ -38,20 +38,28 @@ class Cache:
     @call_history
     @count_calls
     def store(self, data: Union[str, bytes, int, float]) -> str:
-        key = uuid.uuid1()
-        self._redis.set(str(key), data)
-        return str(key)
+        '''Stores a value in a Redis data storage and returns the key.
+        '''
+        data_key = str(uuid.uuid4())
+        self._redis.set(data_key, data)
+        return data_key
 
-    def get(self, key: str, fn: Callable = None):
-        """get key from redis database"""
-        if fn is not None:
-            return fn(self._redis.get(key))
-        return self._redis.get(key)
+    def get(
+            self,
+            key: str,
+            fn: Callable = None,
+            ) -> Union[str, bytes, int, float]:
+        '''Retrieves a value from a Redis data storage.
+        '''
+        data = self._redis.get(key)
+        return fn(data) if fn is not None else data
 
     def get_str(self, key: str) -> str:
-        """convert binary to string"""
-        return self._redis.get(key).decode("utf-8")
+        '''Retrieves a string value from a Redis data storage.
+        '''
+        return self.get(key, lambda x: x.decode('utf-8'))
 
     def get_int(self, key: str) -> int:
-        """convert binary to string then to int"""
-        return int(self._redis.get(key).decode("utf-8"))
+        '''Retrieves an integer value from a Redis data storage.
+        '''
+        return self.get(key, lambda x: int(x))
