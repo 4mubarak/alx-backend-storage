@@ -21,21 +21,19 @@ def count_calls(method: callable) -> Callable:
 
 
 def call_history(method: Callable) -> Callable:
-    '''Tracks the call details of a method in a Cache class.
-    '''
+    """doc doc class"""
+    inkey = method.__qualname__ + ":inputs"
+    outkey = method.__qualname__ + ":outputs"
+
     @wraps(method)
-    def invoker(self, *args, **kwargs) -> Any:
-        '''Returns the method's output after storing its inputs and output.
-        '''
-        in_key = '{}:inputs'.format(method.__qualname__)
-        out_key = '{}:outputs'.format(method.__qualname__)
-        if isinstance(self._redis, redis.Redis):
-            self._redis.rpush(in_key, str(args))
-        output = method(self, *args, **kwargs)
-        if isinstance(self._redis, redis.Redis):
-            self._redis.rpush(out_key, output)
-        return output
-    return invoker
+    def wrapper(self, *args, **kwargs):
+        """doc doc class"""
+        self._redis.rpush(inkey, str(args))
+        res = method(self, *args, **kwargs)
+        self._redis.rpush(outkey, str(res))
+        return res
+
+    return wrapper
 
 
 def replay(fn: Callable) -> None:
